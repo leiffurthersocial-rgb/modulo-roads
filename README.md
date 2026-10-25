@@ -4,34 +4,25 @@ A calm, endless, procedurally generated drive through Switzerland. No goals, no 
 
 Built with **TypeScript + Three.js + Vite**. Designed first for **Safari on iPad with a hardware keyboard** (Magic Keyboard), and also runs in desktop Chrome, Safari, Edge and Firefox.
 
-## Run it
+## Deploy (GitHub → Vercel)
 
-```bash
-npm install
-npm run dev        # http://localhost:5173 (also exposed on your LAN for testing on an iPad)
-npm run build      # typecheck + production build into dist/
-npm run preview    # serve the production build
-```
+The game is a static Vite build; nothing runs on a server.
 
-Node 18+ is recommended.
+1. In Vercel choose **Add New → Project** and import this GitHub repository.
+2. Vercel reads `vercel.json` (framework Vite, `npm run build`, output `dist`) — just click **Deploy**.
+3. Every push to the production branch redeploys automatically; other branches get preview URLs.
 
-## Play on an iPad
+`vercel.json` also serves the service worker uncached (so updates arrive) and caches the hashed assets forever.
 
-1. Run `npm run dev` on your computer and open the printed **Network** URL on the iPad (same Wi-Fi), or deploy the build (below) and open that URL.
-2. In Safari tap **Share → Add to Home Screen**. Launching from the Home Screen gives you full screen, landscape, and offline play (the service worker caches the game after the first load — only in production builds).
-3. Turn the iPad to landscape. Connect the Magic Keyboard and drive with **W A S D** or the arrow keys.
+## Install on an iPad
+
+1. Open your Vercel URL in Safari.
+2. Tap **Share → Add to Home Screen**. Launching from the Home Screen gives full screen, landscape, and offline play (the service worker caches the game after the first visit).
+3. Turn the iPad to landscape, connect the Magic Keyboard and drive with **W A S D** or the arrow keys.
 4. The Magic Keyboard has no Escape key: pause with **`** (backtick) or **⌘ .**.
 5. On a long drive, press **B** for Low Battery Mode.
 
 If no keyboard is detected, on-screen touch controls appear automatically (Settings → Controls to force them on or off).
-
-## Deploy
-
-The build is fully static and uses relative paths (`base: './'`), so it works from any host or sub-folder:
-
-- **GitHub Pages**: `npm run build`, then publish `dist/` (e.g. with the `gh-pages` branch or a Pages workflow).
-- **Netlify / Vercel / Cloudflare Pages**: build command `npm run build`, output directory `dist`.
-- **Any web server**: copy `dist/` anywhere. HTTPS is required for the service worker and "Add to Home Screen" offline support.
 
 ## Controls
 
