@@ -1,0 +1,21 @@
+{
+  "name": "modulo-roads",
+  "private": true,
+  "version": "1.0.0",
+  "description": "A calm, endless, procedurally generated driving game set in Switzerland.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.180.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.7"
+  }
+}
