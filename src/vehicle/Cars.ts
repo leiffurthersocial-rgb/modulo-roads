@@ -192,6 +192,31 @@ function clipAbove(poly: [number, number][], c: number): [number, number][] {
   return out;
 }
 
+/** Offset a counter-clockwise polygon outward by d (mitred, clamped). */
+function offsetPolygon(poly: [number, number][], d: number): [number, number][] {
+  const n = poly.length;
+  const out: [number, number][] = [];
+  for (let i = 0; i < n; i++) {
+    const p = poly[(i - 1 + n) % n];
+    const c = poly[i];
+    const q = poly[(i + 1) % n];
+    const n1 = norm(c[1] - p[1], -(c[0] - p[0]));
+    const n2 = norm(q[1] - c[1], -(q[0] - c[0]));
+    let mx = n1[0] + n2[0];
+    let my = n1[1] + n2[1];
+    const ml = Math.hypot(mx, my) || 1;
+    mx /= ml;
+    my /= ml;
+    const cos = Math.max(0.35, mx * n1[0] + my * n1[1]);
+    out.push([c[0] + (mx * d) / cos, c[1] + (my * d) / cos]);
+  }
+  return out;
+}
+function norm(x: number, y: number): [number, number] {
+  const l = Math.hypot(x, y) || 1;
+  return [x / l, y / l];
+}
+
 function extrudeProfile(points: [number, number][], width: number, bevel: number): THREE.BufferGeometry {
   const shape = new THREE.Shape();
   shape.moveTo(points[0][0], points[0][1]);
@@ -223,6 +248,8 @@ export interface CarModel {
   wipers: THREE.Object3D[];
   paint: THREE.MeshStandardMaterial;
   headlightAnchor: THREE.Object3D;
+  roof: THREE.Mesh;
+  eye: THREE.Vector3;
   dispose(): void;
 }
 
@@ -247,18 +274,18 @@ export function buildCar(def: CarDef): CarModel {
   // Glasshouse = the body silhouette above the belt line, drawn with a polygon
   // offset so it always wins over the paint; a painted roof skin goes on top.
   const belt = def.glass[0][1];
-  const glassGeo = extrudeProfile(clipAbove(def.profile, belt), def.width + 0.004, 0.0);
+  const glassGeo = extrudeProfile(offsetPolygon(clipAbove(def.profile, belt), 0.07), def.width + 0.004, 0.0);
   let roofY = 0;
   for (const p of def.profile) roofY = Math.max(roofY, p[1]);
-  const roofGeo = extrudeProfile(clipAbove(def.profile, roofY - 0.07), def.width - 0.16, 0.0);
-  roofGeo.translate(0, 0.012, 0);
+  const roofGeo = extrudeProfile(offsetPolygon(clipAbove(def.profile, roofY - 0.07), 0.08), def.width - 0.16, 0.0);
   geos.push(roofGeo);
   geos.push(glassGeo);
   const glass = new THREE.Mesh(glassGeo, glassMat);
   body.add(glass);
   const roofPaint = standard({ color: def.color, metalness: 0.35, roughness: 0.32, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8 });
   mats.push(roofPaint);
-  body.add(new THREE.Mesh(roofGeo, def.id === 'classic' ? standard({ color: 0xf2ead8, roughness: 0.4, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8 }) : roofPaint));
+  const roofMesh = new THREE.Mesh(roofGeo, def.id === 'classic' ? standard({ color: 0xf2ead8, roughness: 0.4, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8 }) : roofPaint);
+  body.add(roofMesh);
 
   const L = def.length / 2;
   const W = def.width / 2;
@@ -272,19 +299,19 @@ export function buildCar(def: CarDef): CarModel {
   };
   // bumpers & sills
   const frontY = def.profile[2][1] * 0.5 + 0.22;
-  box(def.width + 0.04, 0.18, 0.16, 0, 0.42, L + 0.02, trim);
-  box(def.width + 0.04, 0.18, 0.16, 0, 0.42, -L - 0.02, trim);
+  box(def.width + 0.04, 0.18, 0.16, 0, 0.42, L + 0.08, trim);
+  box(def.width + 0.04, 0.18, 0.16, 0, 0.42, -L - 0.08, trim);
   box(0.06, 0.12, def.length * 0.62, W + 0.01, 0.42, 0, trim);
   box(0.06, 0.12, def.length * 0.62, -W - 0.01, 0.42, 0, trim);
   // lights
   const hlY = Math.min(frontY + 0.12, def.profile[2][1] + 0.05);
   for (const sx of [-1, 1]) {
-    box(0.32, 0.13, 0.05, sx * (W - 0.28), hlY, L + 0.035, headlightMat);
-    box(0.3, 0.12, 0.05, sx * (W - 0.26), def.profile[def.profile.length - 1][1] + 0.02, -L - 0.035, tailMat);
+    box(0.32, 0.13, 0.05, sx * (W - 0.28), hlY, L + 0.09, headlightMat);
+    box(0.3, 0.12, 0.05, sx * (W - 0.26), def.profile[def.profile.length - 1][1] + 0.02, -L - 0.09, tailMat);
   }
   // grille / plate
-  box(0.5, 0.11, 0.04, 0, 0.6, L + 0.05, chrome);
-  box(0.46, 0.11, 0.03, 0, 0.62, -L - 0.05, basic({ color: 0xf2f2f2 }));
+  box(0.5, 0.11, 0.04, 0, 0.6, L + 0.09, chrome);
+  box(0.46, 0.11, 0.03, 0, 0.62, -L - 0.09, basic({ color: 0xf2f2f2 }));
   // mirrors
   for (const sx of [-1, 1]) box(0.16, 0.1, 0.08, sx * (W + 0.07), def.glass[0][1] + 0.05, def.glass[0][0] - 0.15, paint);
   if (def.id === 'van') {
@@ -324,15 +351,18 @@ export function buildCar(def: CarDef): CarModel {
   const interior = new THREE.Group();
   const dashMat = lambert({ color: 0x2a2c30 });
   mats.push(dashMat);
-  const dashZ = def.glass[0][0] - 0.12;
-  const dash = new THREE.Mesh(new THREE.BoxGeometry(def.width - 0.15, 0.22, 0.5), dashMat);
-  dash.position.set(0, def.glass[0][1] - 0.05, dashZ - 0.1);
+  // driver's eye: a little above the belt line, behind the windscreen, left seat
+  const wsZ = def.glass[0][0];
+  const eye = new THREE.Vector3(def.width * 0.22, Math.min(belt + 0.26, roofY - 0.14), wsZ - 0.95);
+  const dashZ = wsZ - 0.28;
+  const dash = new THREE.Mesh(new THREE.BoxGeometry(def.width - 0.15, 0.2, 0.42), dashMat);
+  dash.position.set(0, belt - 0.14, dashZ);
   geos.push(dash.geometry);
   interior.add(dash);
   const clusterMat = basic({ color: 0x0c1014 });
   mats.push(clusterMat);
   const cluster = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.14, 0.02), clusterMat);
-  cluster.position.set(def.eye[0], def.glass[0][1] + 0.06, dashZ - 0.36);
+  cluster.position.set(eye.x, belt - 0.02, dashZ - 0.22);
   cluster.rotation.x = -0.3;
   geos.push(cluster.geometry);
   interior.add(cluster);
@@ -341,17 +371,9 @@ export function buildCar(def: CarDef): CarModel {
   const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.03, 0.02), dashMat);
   geos.push(ring.geometry, spoke.geometry);
   sw.add(ring, spoke);
-  sw.position.set(def.eye[0], def.eye[1] - 0.3, def.eye[2] + 0.42);
+  sw.position.set(eye.x, belt - 0.12, eye.z + 0.42);
   sw.rotation.x = -0.35;
   interior.add(sw);
-  // A-pillars to frame the view
-  for (const sx of [-1, 1]) {
-    const p = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.6, 0.06), trim);
-    p.position.set(sx * (W - 0.08), (def.glass[0][1] + def.glass[1][1]) / 2, (def.glass[0][0] + def.glass[1][0]) / 2);
-    p.rotation.x = Math.atan2(def.glass[0][0] - def.glass[1][0], def.glass[1][1] - def.glass[0][1]);
-    geos.push(p.geometry);
-    interior.add(p);
-  }
   interior.visible = false;
   body.add(interior);
 
@@ -385,6 +407,8 @@ export function buildCar(def: CarDef): CarModel {
     wipers,
     paint,
     headlightAnchor,
+    roof: roofMesh,
+    eye,
     dispose() {
       for (const g of geos) g.dispose();
       for (const m of mats) m.dispose();

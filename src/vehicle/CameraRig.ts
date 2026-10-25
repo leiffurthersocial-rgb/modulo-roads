@@ -89,6 +89,7 @@ export class CameraRig {
     const sp01 = clamp(speed / topSpeed, 0, 1);
     const inside = !this.photo && (this.mode === 'cockpit' || this.mode === 'hood' || this.mode === 'bumper');
     car.model.interior.visible = !this.photo && this.mode === 'cockpit';
+    car.model.roof.visible = !car.model.interior.visible;
 
     // smoothing strength (0 = rigid, 1 = very floaty)
     const sm = this.smoothing;
@@ -118,7 +119,7 @@ export class CameraRig {
       // rigidly attached to the body, with a little lag on yaw for comfort
       const local =
         this.mode === 'cockpit'
-          ? TMP.set(car.def.eye[0], car.def.eye[1], car.def.eye[2])
+          ? TMP.copy(car.model.eye)
           : this.mode === 'hood'
             ? TMP.set(0, car.def.height * 0.86, car.def.length * 0.12)
             : TMP.set(0, 0.55, car.def.length / 2 + 0.25);

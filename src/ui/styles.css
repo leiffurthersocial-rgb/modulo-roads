@@ -263,3 +263,7 @@ input[type='range']::-moz-range-thumb { width: 18px; height: 18px; border-radius
 }
 @media (max-height: 640px) { .map-card { aspect-ratio: 16 / 8; } .start { padding-top: calc(20px + var(--sat)); } }
 @media (prefers-reduced-motion: reduce) { * { transition-duration: 0.01s !important; animation: none !important; } }
+
+/* make room for touch controls */
+#ui.touch-on .hud-left { bottom: calc(150px + var(--sab)); }
+#ui.touch-on .hud-speed { bottom: calc(280px + var(--sab)); }

@@ -34,8 +34,8 @@ const k = (e: number, zenith: number, horizon: number, sun: number, sunI: number
   hemiI,
 });
 const KEYS: Key[] = [
-  k(-90, 0x03060f, 0x0a1224, 0x000000, 0, 0.16),
-  k(-14, 0x050b1c, 0x111d36, 0x000000, 0, 0.18),
+  k(-90, 0x040814, 0x0d162c, 0x000000, 0, 0.22),
+  k(-14, 0x07102a, 0x15223f, 0x000000, 0, 0.24),
   k(-6, 0x14264c, 0x6b5d7c, 0x3a2030, 0, 0.3),
   k(-2, 0x223e78, 0xd9825a, 0xff6a30, 0.15, 0.42),
   k(2, 0x2f5ba2, 0xf3a062, 0xff8a40, 0.9, 0.55),
@@ -64,7 +64,7 @@ function weatherParams(w: Weather, density: number): WeatherParams {
     case 'overcast':
       return { cover: 0.9 + 0.1 * density, dim: 0.38, desat: 0.6, fog: 1.4, mist: 0.2, precip: 0, intensity: 0, lightning: 0 };
     case 'fog':
-      return { cover: 0.8, dim: 0.45, desat: 0.7, fog: 4.2, mist: 1, precip: 0, intensity: 0, lightning: 0 };
+      return { cover: 0.8, dim: 0.45, desat: 0.7, fog: 6.5, mist: 1.6, precip: 0, intensity: 0, lightning: 0 };
     case 'rain':
       return { cover: 0.96, dim: 0.3, desat: 0.65, fog: 1.9, mist: 0.3, precip: 1, intensity: 0.7, lightning: 0 };
     case 'snow':
@@ -259,7 +259,7 @@ export class Atmosphere {
     su.uFogColor.value.copy(this.fog.color);
     su.uHorizonFog.value = clamp(0.55 + c.fog * 0.1, 0, 0.95);
     const base = 1.6 / (ctx.renderDistance * 0.95);
-    this.fog.density = base * Math.sqrt(c.fog * (0.75 + 0.25 * fogB));
+    this.fog.density = base * Math.pow(c.fog, 0.8) * Math.sqrt(0.75 + 0.25 * fogB);
     Shared.uFogParams.value.set(0.006, ctx.carPos.y - 25, mistB * 0.5 + c.mist * 1.5, 45);
     Shared.uFogSunColor.value.copy(this.sunC).multiplyScalar(0.28 * (1 - c.desat) * smoothstep(-6, 4, elevDeg));
     Shared.uFogSunDir.value.copy(this.sunDir);
@@ -331,6 +331,6 @@ export class Atmosphere {
   }
   /** Exposure compensation so nights are dark-blue rather than black. */
   exposure(): number {
-    return lerp(1.0, 1.6, this.night) * lerp(1, 1.15, this.cur.desat * (1 - this.night));
+    return lerp(1.0, 1.9, this.night) * lerp(1, 1.15, this.cur.desat * (1 - this.night));
   }
 }

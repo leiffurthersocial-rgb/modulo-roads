@@ -66,6 +66,7 @@ export class Game {
   private regionName = '';
   private lastFrameMs = 16;
   private busy = false;
+  private resumeAfterSettings = false;
   private w = new Float32Array(BIOME_COUNT);
   private tmpV = new THREE.Vector3();
 
@@ -528,8 +529,16 @@ export class Game {
   private openSettings(on: boolean): void {
     if (on === this.ui.settingsVisible) return;
     this.audio.ui(on ? 'open' : 'close');
-    if (on && this.state === 'driving') this.setPaused(true, false);
+    if (on) {
+      this.resumeAfterSettings = this.state === 'driving';
+      if (this.state === 'driving') this.setPaused(true, false);
+    }
     this.ui.showSettings(on);
+    // the settings panel replaces the pause menu while open
+    if (this.state === 'paused') {
+      if (!on && this.resumeAfterSettings) this.setPaused(false);
+      else this.ui.showPause(!on, this.pauseStats());
+    }
   }
 
   private setPaused(on: boolean, showMenu = true): void {
@@ -837,7 +846,7 @@ export class Game {
     const b = BIOMES[r.biome];
     this.regionName = `${b.name} · ${r.place}`;
     if (this.state === 'driving' || this.state === 'loading') {
-      if (this.settings.data.general.titleCards) this.ui.titleCard(b.name, `${r.place} · ${b.region}`);
+      if (this.settings.data.general.titleCards) this.ui.titleCard(b.name, b.region.includes(r.place) ? b.region : `${r.place} · ${b.region}`);
       if (this.journey && this.journey.regions[this.journey.regions.length - 1] !== b.name) this.journey.regions.push(b.name);
     }
   }

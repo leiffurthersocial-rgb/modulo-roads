@@ -410,7 +410,7 @@ export class RoadChunks {
             (j) => {
               const i = i0 + j;
               const lamp = Math.exp(-(((i % 6) - 3) ** 2) / 3);
-              const v = (lower ? 0.55 : 0.26) + lamp * 0.12;
+              const v = (lower ? 0.36 : 0.16) + lamp * 0.1;
               tun.rgb(v * 1.05, v * 0.98, v * 0.88);
             },
           );
@@ -426,15 +426,18 @@ export class RoadChunks {
         const portalCol = stone ? [0.55, 0.52, 0.48] : [0.66, 0.65, 0.62];
         const makePortal = (j: number, outward: 1 | -1) => {
           const shape = new THREE.Shape();
-          shape.moveTo(-17, -2);
-          shape.lineTo(17, -2);
-          shape.lineTo(17, 13);
-          shape.lineTo(-17, 13);
-          shape.lineTo(-17, -2);
+          const pw = hw + 5.5;
+          shape.moveTo(-pw, -5);
+          shape.lineTo(pw, -5);
+          shape.lineTo(pw, 9.2);
+          shape.lineTo(-pw, 9.2);
+          shape.lineTo(-pw, -5);
+          // the hole follows the tunnel profile, slightly larger, open at road level
           const hole = new THREE.Path();
-          hole.moveTo(prof[0][0], prof[0][1] - 1.8);
-          for (let p = 0; p < prof.length; p++) hole.lineTo(prof[p][0] * 1.0, prof[p][1] + (p === 0 || p === prof.length - 1 ? -1.8 : 0.05));
-          hole.lineTo(prof[0][0], prof[0][1] - 1.8);
+          hole.moveTo(prof[0][0] - 0.15, -1.2);
+          for (let p = 1; p < prof.length - 1; p++) hole.lineTo(prof[p][0] * 1.03, prof[p][1] + 0.12);
+          hole.lineTo(prof[prof.length - 1][0] + 0.15, -1.2);
+          hole.lineTo(prof[0][0] - 0.15, -1.2);
           shape.holes.push(hole);
           const sg = new THREE.ShapeGeometry(shape, 6);
           const ox2 = outward > 0 ? FX[j] : -FX[j];
@@ -449,7 +452,7 @@ export class RoadChunks {
           sg.dispose();
           // cornice
           det.rgb(portalCol[0] * 0.85, portalCol[1] * 0.85, portalCol[2] * 0.85);
-          det.box(X[j] + ox2 * 0.8, Y[j] + 12.6, Z[j] + oz2 * 0.8, 17.5, 0.5, 0.9, FX[j], FZ[j]);
+          det.box(X[j] + ox2 * 0.6, Y[j] + 9.0, Z[j] + oz2 * 0.6, hw + 5.8, 0.35, 0.7, FX[j], FZ[j]);
         };
         if (!(road.flags(i0 + ja - 1) & F_TUNNEL)) makePortal(ja, -1);
         if (!(road.flags(i0 + jb + 1) & F_TUNNEL)) makePortal(jb, 1);

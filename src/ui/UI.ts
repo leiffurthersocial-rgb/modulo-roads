@@ -540,7 +540,11 @@ export class UI {
       const on = (e: PointerEvent) => {
         e.preventDefault();
         b.classList.add('active');
-        b.setPointerCapture(e.pointerId);
+        try {
+          b.setPointerCapture(e.pointerId);
+        } catch {
+          /* synthetic or already-released pointer */
+        }
         this.input.setVirtual(action, true);
       };
       const off = (e: PointerEvent) => {
@@ -574,6 +578,7 @@ export class UI {
     const mode = getSettings().data.controls.touchControls;
     const show = this.touchWanted && (mode === 'on' || (mode === 'auto' && isTouchDevice() && !this.input.keyboardSeen));
     this.touch.classList.toggle('show', show);
+    this.touch.parentElement?.classList.toggle('touch-on', show);
   }
 }
 
