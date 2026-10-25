@@ -92,7 +92,8 @@ export function effectiveSettings(s: Settings, lowBattery: boolean, msaaAvailabl
 export function costEstimate(e: Effective, displayHz = 60): number {
   const fps = e.fpsCap > 0 ? Math.min(e.fpsCap, displayHz) : displayHz;
   const px = e.pixelRatio * e.pixelRatio;
-  let perFrame = px * (1 + (e.renderDistance / 1000) * 0.6);
+  // a fixed per-frame cost (scene traversal, physics, audio, compositing) plus pixel work
+  let perFrame = 0.9 + px * (1 + (e.renderDistance / 1000) * 0.6);
   if (e.shadows !== 'off') perFrame += px * 0.15 + (e.shadows === 'high' ? 0.5 : e.shadows === 'medium' ? 0.3 : 0.1);
   if (e.waterReflections) perFrame += px * 0.25 + 0.3;
   if (e.bloom) perFrame += px * 0.25;

@@ -415,7 +415,7 @@ export class Vehicle {
     }
     m.steeringWheel.rotation.z = -this.steerAngle * 6;
     // lights
-    m.tailMat.color.setRGB(this.braking ? 1.6 : this.headlights ? 0.7 : 0.35, 0.02, 0.02);
+    m.tailMat.color.setRGB(this.braking ? 1.15 : this.headlights ? 0.6 : 0.35, 0.02, 0.02);
     m.headlightMat.color.setRGB(this.headlights ? 2.2 : 0.85, this.headlights ? 2.1 : 0.85, this.headlights ? 1.8 : 0.8);
     // wipers
     if (this.wipers > 0 || this.wiperT > 0) {

@@ -224,7 +224,7 @@ export class Game {
     if (resume) this.hour = resume.timeOfDay;
     else if (map >= 0 && BIOMES[map].startHour !== undefined && this.settings.data.world.dayNightCycle) this.hour = BIOMES[map].startHour!;
     if (this.car) {
-      if (!same || !resume) this.car.placeAt(startS + 8, 0);
+      this.car.placeAt(resume ? startS : startS + 8, 0);
       this.car.autoDrive = this.settings.data.driving.autoDrive;
       this.car.cruise = false;
     }
